@@ -4,13 +4,13 @@ import express, { Application, Request, Response } from 'express';
 
 // Setup all LINE client and Express configurations.
 const clientConfig: ClientConfig = {
-  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
-  channelSecret: process.env.CHANNEL_SECRET,
+  channelAccessToken: process.env.LINE_BOT_CHANNEL_TOKEN || '',
+  channelSecret: process.env.LINE_BOT_CHANNEL_SECRET,
 };
 
 const middlewareConfig: MiddlewareConfig = {
-  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.CHANNEL_SECRET || '',
+  channelAccessToken: process.env.LINE_BOT_CHANNEL_TOKEN,
+  channelSecret: process.env.LINE_BOT_CHANNEL_SECRET || '',
 };
 
 const PORT = process.env.PORT || 3000;
