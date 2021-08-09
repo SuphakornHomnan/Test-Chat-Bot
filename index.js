@@ -1,6 +1,6 @@
 // Import all dependencies, mostly using destructuring for better view.
-import { Client, middleware } from "@line/bot-sdk";
-import express from "express";
+const { Client, middleware } = require("@line/bot-sdk");
+const express = require("express");
 
 // Setup all LINE client and Express configurations.
 const clientConfig = {
