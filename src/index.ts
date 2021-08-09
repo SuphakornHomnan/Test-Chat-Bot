@@ -1,17 +1,7 @@
 // Import all dependencies, mostly using destructuring for better view.
-import { ClientConfig, Client, middleware, MiddlewareConfig, WebhookEvent, TextMessage, MessageAPIResponseBase } from '@line/bot-sdk';
+import { Client, middleware, WebhookEvent, TextMessage, MessageAPIResponseBase } from '@line/bot-sdk';
 import express, { Application, Request, Response } from 'express';
-
-// Setup all LINE client and Express configurations.
-const clientConfig: ClientConfig = {
-  channelAccessToken: process.env.LINE_BOT_CHANNEL_TOKEN || '',
-  channelSecret: process.env.LINE_BOT_CHANNEL_SECRET,
-};
-
-const middlewareConfig: MiddlewareConfig = {
-  channelAccessToken: process.env.LINE_BOT_CHANNEL_TOKEN,
-  channelSecret: process.env.LINE_BOT_CHANNEL_SECRET || '',
-};
+import { clientConfig, middlewareConfig } from './config';
 
 const PORT = process.env.PORT || 3000;
 
@@ -20,6 +10,17 @@ const client = new Client(clientConfig);
 
 // Create a new Express application.
 const app: Application = express();
+
+const botMessage = (msg: string): string => {
+  switch (msg) {
+    case 'อายุ':
+      return 'หนูอายุ 17 ปีค่ะ ^.^'
+    case 'สมาชิกในวง':
+      return 'Itzy มีสมาชิกทั้งหมด 5 คนค่ะ'
+    default:
+      return 'หนูไม่รู้จะตอบว่าไงดีงะ'
+  }
+}
 
 // Function handler to receive the text.
 const textEventHandler = async (event: WebhookEvent): Promise<MessageAPIResponseBase | undefined> => {
@@ -30,7 +31,7 @@ const textEventHandler = async (event: WebhookEvent): Promise<MessageAPIResponse
 
   // Process all message related variables here.
   const { replyToken } = event;
-  const { text } = event.message;
+  const text = botMessage(event.message.text)
 
   // Create a new message.
   const response: TextMessage = {
@@ -41,10 +42,6 @@ const textEventHandler = async (event: WebhookEvent): Promise<MessageAPIResponse
   // Reply to the user.
   await client.replyMessage(replyToken, response);
 };
-
-// Register the LINE middleware.
-// As an alternative, you could also pass the middleware in the route handler, which is what is used here.
-// app.use(middleware(middlewareConfig));
 
 // Route handler to receive webhook events.
 // This route is used to receive connection tests.
@@ -70,14 +67,11 @@ app.post(
       events.map(async (event: WebhookEvent) => {
         try {
           await textEventHandler(event);
-        } catch (err: unknown) {
-          if (err instanceof Error) {
-            console.error(err);
-          }
-
+        } catch (err: any) {
           // Return an error message.
           return res.status(500).json({
             status: 'error',
+            msg: err.message
           });
         }
       })

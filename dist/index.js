@@ -6,20 +6,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Import all dependencies, mostly using destructuring for better view.
 const bot_sdk_1 = require("@line/bot-sdk");
 const express_1 = __importDefault(require("express"));
-// Setup all LINE client and Express configurations.
-const clientConfig = {
-    channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || '',
-    channelSecret: process.env.CHANNEL_SECRET,
-};
-const middlewareConfig = {
-    channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
-    channelSecret: process.env.CHANNEL_SECRET || '',
-};
+const config_1 = require("./config");
 const PORT = process.env.PORT || 3000;
 // Create a new LINE SDK client.
-const client = new bot_sdk_1.Client(clientConfig);
+const client = new bot_sdk_1.Client(config_1.clientConfig);
 // Create a new Express application.
 const app = express_1.default();
+const botMessage = (msg) => {
+    switch (msg) {
+        case 'อายุ':
+            return 'หนูอายุ 17 ปีค่ะ ^.^';
+        case 'สมาชิกในวง':
+            return 'Itzy มีสมาชิกทั้งหมด 5 คนค่ะ';
+        default:
+            return 'หนูไม่รู้จะตอบว่าไงดีงะ';
+    }
+};
 // Function handler to receive the text.
 const textEventHandler = async (event) => {
     // Process all variables here.
@@ -28,7 +30,7 @@ const textEventHandler = async (event) => {
     }
     // Process all message related variables here.
     const { replyToken } = event;
-    const { text } = event.message;
+    const text = botMessage(event.message.text);
     // Create a new message.
     const response = {
         type: 'text',
@@ -37,9 +39,6 @@ const textEventHandler = async (event) => {
     // Reply to the user.
     await client.replyMessage(replyToken, response);
 };
-// Register the LINE middleware.
-// As an alternative, you could also pass the middleware in the route handler, which is what is used here.
-// app.use(middleware(middlewareConfig));
 // Route handler to receive webhook events.
 // This route is used to receive connection tests.
 app.get('/', async (_, res) => {
@@ -49,7 +48,7 @@ app.get('/', async (_, res) => {
     });
 });
 // This route is used for the Webhook.
-app.post('/webhook', bot_sdk_1.middleware(middlewareConfig), async (req, res) => {
+app.post('/webhook', bot_sdk_1.middleware(config_1.middlewareConfig), async (req, res) => {
     const events = req.body.events;
     // Process all of the received events asynchronously.
     const results = await Promise.all(events.map(async (event) => {
@@ -57,12 +56,10 @@ app.post('/webhook', bot_sdk_1.middleware(middlewareConfig), async (req, res) =>
             await textEventHandler(event);
         }
         catch (err) {
-            if (err instanceof Error) {
-                console.error(err);
-            }
             // Return an error message.
             return res.status(500).json({
                 status: 'error',
+                msg: err.message
             });
         }
     }));
